@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VÉANT Shop</title>
+    <link rel="stylesheet" href="styles.css">
+    <script defer src="shop.js"></script>
+    <style>
+        body {
+            background: url('background.png') no-repeat center center fixed;
+            background-size: cover;
+            color: white;
+            font-family: 'Arial', sans-serif;
+            text-align: center;
+        }
+        .shop-header {
+            padding: 20px;
+            font-size: 24px;
+            font-weight: bold;
+            background: rgba(0, 0, 0, 0.5);
+            border-radius: 10px;
+        }
+        .product-image {
+            width: 250px;
+            height: auto;
+        }
+        .cart-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 10px;
+            border-radius: 8px;
+        }
+        .cart-item img {
+            width: 50px;
+            height: auto;
+            margin-right: 10px;
+        }
+        .back-button {
+            background: white;
+            color: black;
+            padding: 10px 30px;
+            font-size: 16px;
+            font-weight: bold;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: 0.3s;
+            margin-top: 20px;
+        }
+        .back-button:hover {
+            background: #ddd;
+        }
+        .product-grid {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            flex-wrap: nowrap;
+            overflow-x: auto;
+            padding: 20px;
+        }
+        .product-card {
+            flex: 0 0 auto;
+            background: rgba(0, 0, 0, 0.6);
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <header class="shop-header">
+        <h1 class="shop-title">VÉANT Shop</h1>
+        <div class="cart-icon" onclick="toggleCart()">
+            <img src='troliweb.png' alt='Cart' style='width: 40px; height: auto; cursor: pointer;'>
+            <span id="cart-badge">0</span>
+        </div>
+    </header>
+
+    <button class="back-button" onclick="history.back()">Go Back</button>
+    
+    <div class="product-grid" id="product-list">
+       <div class="product-card">
+            <img src="galaxy_clothing.jpg" alt="Galaxy Clothing" class="product-image">
+            <h2>VÉANT - GALACTIC ODYSSEY</h2>
+            <p class="product-price">Rp 149.590</p>
+            <button class="add-to-cart" onclick="addToCart('VÉANT - GALACTIC ODYSSEY', 149590, 'galaxy_clothing.jpg')">Add to Cart</button>
+        </div>
+        <div class="product-card">
+            <img src="flower_clothing.jpg" alt="Flower Clothing" class="product-image">
+            <h2>VÉANT - FLEUR NOIRE</h2>
+            <p class="product-price">Rp 99.000</p>
+            <button class="add-to-cart" onclick="addToCart('VÉANT - FLEUR NOIRE', 99000, 'flower_clothing.jpg')">Add to Cart</button>
+        </div>
+        <div class="product-card">
+            <img src="abstrak_clothing.jpg" alt="Abstrak Clothing" class="product-image">
+            <h2>VÉANT - NOIR DÉFORMÉ</h2>
+            <p class="product-price">Rp 115.000</p>
+            <button class="add-to-cart" onclick="addToCart('VÉANT - NOIR DÉFORMÉ', 115000, 'abstrak_clothing.jpg')">Add to Cart</button>
+        </div>
+        <div class="product-card">
+            <img src="veant_clothing.jpg" alt="VÉANT Signature" class="product-image">
+            <h2>VÉANT - NOIR VISIONNAIRE</h2>
+            <p class="product-price">Rp 110.000</p>
+            <button class="add-to-cart" onclick="addToCart('VÉANT - NOIR VISIONNAIRE', 110000, 'veant_clothing.jpg')">Add to Cart</button>
+        </div>
+    </div>
+    
+    <div class="cart-section" id="cart-section" style="display: none;">
+        <h2 class="cart-title">Shopping cart</h2>
+        <div id="cart-items"></div>
+        <p class="cart-total">Total: Rp <span id="cart-total">0</span></p>
+        <button onclick="clearCart()">Delete Cart</button>
+        <button onclick="checkout()">Checkout</button>
+    </div>
+
+    <script>
+        let cart = JSON.parse(localStorage.getItem("cart")) || [];
+        let total = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
+
+        function addToCart(productName, productPrice, productImage) {
+            let existingItem = cart.find(item => item.name === productName);
+            if (existingItem) {
+                existingItem.quantity++;
+            } else {
+                cart.push({ name: productName, price: productPrice, image: productImage, quantity: 1 });
+            }
+            total += productPrice;
+            saveCart();
+            updateCartDisplay();
+        }
+
+        function saveCart() {
+            localStorage.setItem("cart", JSON.stringify(cart));
+        }
+
+        function updateCartDisplay() {
+            const cartItemsContainer = document.getElementById("cart-items");
+            const cartTotalDisplay = document.getElementById("cart-total");
+            const cartBadge = document.getElementById("cart-badge");
+
+            cartItemsContainer.innerHTML = "";
+            cart.forEach((item, index) => {
+                const cartItem = document.createElement("div");
+                cartItem.classList.add("cart-item");
+                cartItem.innerHTML = `
+                    <img src="${item.image}" alt="${item.name}">
+                    <span>${item.name} - Rp ${item.price.toLocaleString()} x${item.quantity}</span>
+                    <button onclick="removeFromCart(${index})">Remove</button>
+                `;
+                cartItemsContainer.appendChild(cartItem);
+            });
+
+            cartTotalDisplay.innerText = total.toLocaleString();
+            cartBadge.innerText = cart.reduce((sum, item) => sum + item.quantity, 0);
+        }
+
+        function removeFromCart(index) {
+            if (cart[index].quantity > 1) {
+                cart[index].quantity--;
+                total -= cart[index].price;
+            } else {
+                total -= cart[index].price;
+                cart.splice(index, 1);
+            }
+            saveCart();
+            updateCartDisplay();
+        }
+
+        function checkout() {
+            if (cart.length === 0) {
+                alert("Empty shopping cart! Add products first.");
+                return;
+            }
+            alert("Total purchases: Rp " + total.toLocaleString() + "\nPlease proceed to payment!");
+            cart = [];
+            total = 0;
+            saveCart();
+            updateCartDisplay();
+            window.location.href = "https://www.instagram.com/veant.clo";
+        }
+
+        function toggleCart() {
+            const cartSection = document.getElementById("cart-section");
+            cartSection.style.display = cartSection.style.display === "none" ? "block" : "none";
+        }
+
+        updateCartDisplay();
+    </script>
+</body>
+</html>
